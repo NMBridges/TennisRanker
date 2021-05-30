@@ -96,13 +96,17 @@ with open('ranks.csv', 'w', newline='') as ranks:
         if not onPage:
             links = driver.find_elements_by_xpath("//*[@id=\"CenterColumn\"]/div[2]/table/tbody/tr[2]/td[1]/b/a")
             if len(links) > 0:
-                # Find highest ranked search result of player. Tie: whichever is first.
+                # The following finds the highest ranked player within the search results.
+                
+                # Finds all players with special icons next to their names
                 playersWithIcons = driver.find_elements_by_tag_name('img')
                 
                 sixStars = []
                 fiveStars = []
                 fourStars = []
                 threeStars = []
+                twoStars = []
+                oneStars = []
                 
                 # Goes through each player with a special icon and sorts them by their star ranking
                 for plyr in playersWithIcons:
@@ -115,7 +119,12 @@ with open('ranks.csv', 'w', newline='') as ranks:
                         fourStars.append(plyr)
                     elif srcLink == 'https://www.tennisrecruiting.net/img/3-starB.gif':
                         threeStars.append(plyr)
+                    elif srcLink == 'https://www.tennisrecruiting.net/img/2-starB.gif':
+                        twoStars.append(plyr)
+                    elif srcLink == 'https://www.tennisrecruiting.net/img/1-starB.gif':
+                        oneStars.append(plyr)
                 
+                # Finds highest ranked player. The tie is whoever's name appears first (most relevant).
                 if len(sixStars) > 0:
                     # Find first six star
                     firstSixStar = sixStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
@@ -132,6 +141,14 @@ with open('ranks.csv', 'w', newline='') as ranks:
                     # Find first three star
                     firstThreeStar = threeStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
                     firstThreeStar.click()
+                elif len(twoStars) > 0:
+                    # Find first three star
+                    firstTwoStar = twoStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                    firstTwoStar.click()
+                elif len(oneStars) > 0:
+                    # Find first three star
+                    firstOneStar = oneStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                    firstOneStar.click()
                 else:
                     # No sufficiently ranked player found. Manual correction needed. Will skip.
                     # Adds the player's rank and name to the .csv file.
