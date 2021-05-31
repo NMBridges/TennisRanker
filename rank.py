@@ -14,7 +14,7 @@ from selenium import webdriver
 #   - Copy the path to where the chromedriver is, and paste it in the spot below.
 #   - Make sure to replace any '\' with '\\' for proper syntax.
 #        - e.g. "C:\\Users\\scrat\\OneDrive\\Documents\\Dev\\Dependencies\\chromedriver.exe"
-PATH = ""
+PATH = "C:\\Users\\scrat\\OneDrive\\Documents\\Dev\\Dependencies\\chromedriver.exe"
 driver = webdriver.Chrome(PATH)
 
 # Opens up an automated Chrome browser at the link below.
@@ -24,6 +24,7 @@ driver.get("https://www.universaltennis.com/rankings")
 # those are the rankings that are scraped by the program.
 hsButton = driver.find_element_by_xpath("//*[@id=\"myutr-app-wrapper\"]/div[3]/div/div[5]/div[2]/div/div/div[1]/div[1]/div/span[4]")
 hsButton.click()
+driver.execute_script("window.scrollTo(0, 700)")
 time.sleep(2)
 hsButton.click()
 
@@ -43,7 +44,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
 
     # The number of pages to cycle through. Each page contains 100 players.
     #    Precondition: 1 < pages <= 25
-    pages = 2
+    pages = 10
 
     # Cycles through a preset amount of pages, scraping the
     # names of the players and adding them to the 'names' list.
@@ -77,6 +78,9 @@ with open('ranks.csv', 'w', newline='') as ranks:
 
         time.sleep(0.9)
 
+        # Useful variable for determining whether future execution is necessary
+        shouldContinue = True
+
         # Determines whether or not searching/querying for the player
         # immediately lands the browser on their webpage.
         onPage = False
@@ -98,67 +102,123 @@ with open('ranks.csv', 'w', newline='') as ranks:
             if len(links) > 0:
                 # The following finds the highest ranked player within the search results.
                 
-                # Finds all players with special icons next to their names
-                playersWithIcons = driver.find_elements_by_tag_name('img')
-                
-                sixStars = []
-                fiveStars = []
-                fourStars = []
-                threeStars = []
-                twoStars = []
-                oneStars = []
-                
-                # Goes through each player with a special icon and sorts them by their star ranking
-                for plyr in playersWithIcons:
-                    srcLink = plyr.get_attribute('src')
-                    if srcLink == 'https://www.tennisrecruiting.net/img/6-starB.gif':
-                        sixStars.append(plyr)
-                    elif srcLink == 'https://www.tennisrecruiting.net/img/5-starB.gif':
-                        fiveStars.append(plyr)
-                    elif srcLink == 'https://www.tennisrecruiting.net/img/4-starB.gif':
-                        fourStars.append(plyr)
-                    elif srcLink == 'https://www.tennisrecruiting.net/img/3-starB.gif':
-                        threeStars.append(plyr)
-                    elif srcLink == 'https://www.tennisrecruiting.net/img/2-starB.gif':
-                        twoStars.append(plyr)
-                    elif srcLink == 'https://www.tennisrecruiting.net/img/1-starB.gif':
-                        oneStars.append(plyr)
-                
+                # Variable used to find a different player if the selected one has already graduated.
+                repeat = True
+
+                # Variables used to count the first X players of each rating who have already graduated
+                # This is to prevent checking the same grduated player over and over
+                sixBlacklist = 0
+                fiveBlacklist = 0
+                fourBlacklist = 0
+                threeBlacklist = 0
+                twoBlacklist = 0
+                oneBlacklist = 0
+
                 # Finds highest ranked player. The tie is whoever's name appears first (most relevant).
-                if len(sixStars) > 0:
-                    # Find first six star
-                    firstSixStar = sixStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstSixStar.click()
-                elif len(fiveStars) > 0:
-                    # Find first five star
-                    firstFiveStar = fiveStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstFiveStar.click()
-                elif len(fourStars) > 0:
-                    # Find first four star
-                    firstFourStar = fourStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstFourStar.click()
-                elif len(threeStars) > 0:
-                    # Find first three star
-                    firstThreeStar = threeStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstThreeStar.click()
-                elif len(twoStars) > 0:
-                    # Find first three star
-                    firstTwoStar = twoStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstTwoStar.click()
-                elif len(oneStars) > 0:
-                    # Find first three star
-                    firstOneStar = oneStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
-                    firstOneStar.click()
-                else:
-                    # No sufficiently ranked player found. Manual correction needed. Will skip.
-                    # Adds the player's rank and name to the .csv file.
-                    print(f"{index + 1}: {name}")
-                    ranksWriter.writerow([f"{index + 1}", f"{name}", ""])
+                while repeat:
+                    # Finds all players with special icons next to their names
+                    playersWithIcons = driver.find_elements_by_tag_name('img')
+                    
+                    sixStars = []
+                    fiveStars = []
+                    fourStars = []
+                    threeStars = []
+                    twoStars = []
+                    oneStars = []
+                    
+                    # Goes through each player with a special icon and sorts them by their star ranking
+                    for plyr in playersWithIcons:
+                        srcLink = plyr.get_attribute('src')
+                        if srcLink == 'https://www.tennisrecruiting.net/img/6-starB.gif':
+                            sixStars.append(plyr)
+                        elif srcLink == 'https://www.tennisrecruiting.net/img/5-starB.gif':
+                            fiveStars.append(plyr)
+                        elif srcLink == 'https://www.tennisrecruiting.net/img/4-starB.gif':
+                            fourStars.append(plyr)
+                        elif srcLink == 'https://www.tennisrecruiting.net/img/3-starB.gif':
+                            threeStars.append(plyr)
+                        elif srcLink == 'https://www.tennisrecruiting.net/img/2-starB.gif':
+                            twoStars.append(plyr)
+                        elif srcLink == 'https://www.tennisrecruiting.net/img/1-starB.gif':
+                            oneStars.append(plyr)
+                    
+                    del sixStars[:sixBlacklist]
+                    del fiveStars[:fiveBlacklist]
+                    del fourStars[:fourBlacklist]
+                    del threeStars[:threeBlacklist]
+                    del twoStars[:twoBlacklist]
+                    del oneStars[:oneBlacklist]
 
-                    # Skips the remaining code for the remaining iteration of the loop.
-                    continue
+                    lastStarTried = 0
+                    if len(sixStars) > 0:
+                        # Find first six star
+                        lastStarTried = 6
+                        firstSixStar = sixStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstSixStar.click()
+                    elif len(fiveStars) > 0:
+                        # Find first five star
+                        lastStarTried = 5
+                        firstFiveStar = fiveStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstFiveStar.click()
+                    elif len(fourStars) > 0:
+                        # Find first four star
+                        lastStarTried = 4
+                        firstFourStar = fourStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstFourStar.click()
+                    elif len(threeStars) > 0:
+                        # Find first three star
+                        lastStarTried = 3
+                        firstThreeStar = threeStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstThreeStar.click()
+                    elif len(twoStars) > 0:
+                        # Find first two star
+                        lastStarTried = 2
+                        firstTwoStar = twoStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstTwoStar.click()
+                    elif len(oneStars) > 0:
+                        # Find first one star
+                        lastStarTried = 1
+                        firstOneStar = oneStars[0].find_element_by_xpath('..').find_element_by_xpath('..').find_element_by_xpath('./td[1]/b/a')
+                        firstOneStar.click()
+                    else:
+                        # No sufficiently ranked player found. Manual correction needed. Will skip.
+                        # Adds the player's rank and name to the .csv file.
+                        print(f"{index + 1}: {name}")
+                        ranksWriter.writerow([f"{index + 1}", f"{name}", ""])
 
-                time.sleep(0.9)
+                        # Skips the remaining code for the remaining iteration of the loop.
+                        shouldContinue = False
+                        break
+
+                    time.sleep(0.9)
+                    
+                    # If the selected player has graduated, the loop will repeat and that
+                    # player will no longer be available.
+                    graduationYear = re.search(r'[12]\d{3}', driver.find_element_by_xpath("//*[@id=\"CenterColumn\"]/table[1]/tbody/tr/td[2]/table/tbody/tr[3]/td[2]/div[3]").text).group(0)
+                    if int(graduationYear) < 2021:
+                        repeat = True
+                        driver.back()
+                        if lastStarTried == 6:
+                            sixStars.pop(0)
+                            sixBlacklist += 1
+                        elif lastStarTried == 5:
+                            fiveStars.pop(0)
+                            fiveBlacklist += 1
+                        elif lastStarTried == 4:
+                            fourStars.pop(0)
+                            fourBlacklist += 1
+                        elif lastStarTried == 3:
+                            threeStars.pop(0)
+                            threeBlacklist += 1
+                        elif lastStarTried == 2:
+                            twoStars.pop(0)
+                            twoBlacklist += 1
+                        elif lastStarTried == 1:
+                            oneStars.pop(0)
+                            oneBlacklist += 1
+                        time.sleep(0.9)
+                    else:
+                        repeat = False
             else:
                 # Adds the player's rank and name to the .csv file.
                 print(f"{index + 1}: {name}")
@@ -166,6 +226,9 @@ with open('ranks.csv', 'w', newline='') as ranks:
 
                 # Skips the remaining code for the remaining iteration of the loop.
                 continue
+        
+        if not shouldContinue:
+            continue
 
         # From the player's page, it will find their graduation year.
         graduationYear = re.search(r'[12]\d{3}', driver.find_element_by_xpath("//*[@id=\"CenterColumn\"]/table[1]/tbody/tr/td[2]/table/tbody/tr[3]/td[2]/div[3]").text).group(0)
