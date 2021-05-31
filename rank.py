@@ -44,7 +44,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
 
     # The number of pages to cycle through. Each page contains 100 players.
     #    Precondition: 1 < pages <= 25
-    pages = 10
+    pages = 8
 
     # Cycles through a preset amount of pages, scraping the
     # names of the players and adding them to the 'names' list.
@@ -190,7 +190,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
                         shouldContinue = False
                         break
 
-                    time.sleep(0.9)
+                    time.sleep(0.6)
                     
                     # If the selected player has graduated, the loop will repeat and that
                     # player will no longer be available.
@@ -216,7 +216,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
                         elif lastStarTried == 1:
                             oneStars.pop(0)
                             oneBlacklist += 1
-                        time.sleep(0.9)
+                        time.sleep(0.6)
                     else:
                         repeat = False
             else:
