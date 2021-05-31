@@ -1,6 +1,7 @@
 import time
 import csv
 import re
+import unidecode
 from selenium import webdriver
 
 # Created by Nolan Bridges and Alex Koong
@@ -20,13 +21,13 @@ driver = webdriver.Chrome(PATH)
 # Opens up an automated Chrome browser at the link below.
 driver.get("https://www.universaltennis.com/rankings")
 
-# Finds and clicks on the 'High School' option to ensure that
+# Finds and clicks on the 'U18' option to ensure that
 # those are the rankings that are scraped by the program.
-hsButton = driver.find_element_by_xpath("//*[@id=\"myutr-app-wrapper\"]/div[3]/div/div[5]/div[2]/div/div/div[1]/div[1]/div/span[4]")
-hsButton.click()
+u18Button = driver.find_element_by_xpath("//*[@id=\"myutr-app-wrapper\"]/div[3]/div/div[5]/div[2]/div/div/div[1]/div[1]/div/span[3]")
+u18Button.click()
 driver.execute_script("window.scrollTo(0, 700)")
 time.sleep(2)
-hsButton.click()
+u18Button.click()
 
 # Instantiates a blank list of names to be added onto as
 # the program scrapes universaltennis.com.
@@ -60,6 +61,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
         # Cycles through each name shown on the page and adds it to the 'names' list.
         for i in range(1, 101):
             playerName = driver.find_element_by_xpath(f"//*[@id=\"myutr-app-wrapper\"]/div[3]/div/div[5]/div[4]/div[{i}]/a/div/div/div[2]/div/span[1]").text
+            playerName = unidecode.unidecode(playerName)
             names.append(playerName)
 
     # Once all the pages are scraped and the names are found, the program will
@@ -231,7 +233,10 @@ with open('ranks.csv', 'w', newline='') as ranks:
             continue
 
         # From the player's page, it will find their graduation year.
-        graduationYear = re.search(r'[12]\d{3}', driver.find_element_by_xpath("//*[@id=\"CenterColumn\"]/table[1]/tbody/tr/td[2]/table/tbody/tr[3]/td[2]/div[3]").text).group(0)
+        graduationYear = ""
+        gradTextTemp = driver.find_elements_by_xpath("//*[@id=\"CenterColumn\"]/table[1]/tbody/tr/td[2]/table/tbody/tr[3]/td[2]/div[3]")
+        if len(gradTextTemp) > 0:
+            graduationYear = re.search(r'[12]\d{3}', gradTextTemp[0].text).group(0)
         
         # Adds the player's rank, name, and class to the .csv file.
         print(f"{index + 1}: {name}, class of {graduationYear}")
