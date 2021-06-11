@@ -15,7 +15,7 @@ from selenium import webdriver
 #   - Copy the path to where the chromedriver is, and paste it in the spot below.
 #   - Make sure to replace any '\' with '\\' for proper syntax.
 #        - e.g. "C:\\Users\\scrat\\OneDrive\\Documents\\Dev\\Dependencies\\chromedriver.exe"
-PATH = "C:\\Users\\scrat\\OneDrive\\Documents\\Dev\\Dependencies\\chromedriver.exe"
+PATH = "/Users/nolan/Documents/GitHub/TennisRanker/chromedriver"
 driver = webdriver.Chrome(PATH)
 
 # Opens up an automated Chrome browser at the link below.
@@ -63,6 +63,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
             playerName = driver.find_element_by_xpath(f"//*[@id=\"myutr-app-wrapper\"]/div[3]/div/div[5]/div[4]/div[{i}]/a/div/div/div[2]/div/span[1]").text
             playerName = unidecode.unidecode(playerName)
             names.append(playerName)
+            print(playerName)
 
     # Once all the pages are scraped and the names are found, the program will
     # now go to tennisrecruiting.net to find the age/class of players.
@@ -237,6 +238,7 @@ with open('ranks.csv', 'w', newline='') as ranks:
         gradTextTemp = driver.find_elements_by_xpath("//*[@id=\"CenterColumn\"]/table[1]/tbody/tr/td[2]/table/tbody/tr[3]/td[2]/div[3]")
         if len(gradTextTemp) > 0:
             graduationYear = re.search(r'[12]\d{3}', gradTextTemp[0].text).group(0)
+            print(graduationYear)
         
         # Adds the player's rank, name, and class to the .csv file.
         print(f"{index + 1}: {name}, class of {graduationYear}")
